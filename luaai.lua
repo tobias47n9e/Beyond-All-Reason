@@ -6,7 +6,7 @@
 --    List of LuaAIs supported by the mod.
 --
 --
-	
+
 return {
   {
     name = 'SimpleAI',
@@ -30,7 +30,7 @@ return {
   },
   {
     name = 'STAI',
-    desc = 'STAI - Shard AI'
+    desc = 'Shard testing v.39 beehive'
   },
   {
     name = 'Shard',

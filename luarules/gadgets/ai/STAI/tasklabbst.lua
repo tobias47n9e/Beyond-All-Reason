@@ -119,17 +119,24 @@ function TaskLabBST:ecoCheck2(soldiers)
 	local soldier = false
 	local tmp = {}
 	local first = table.remove(soldiers,1)
-	tmp[1] = first
-	while # soldiers > 0 do
+	self:EchoDebug('the first soldier is',first)
+	table.insert(tmp,first)
+	while #soldiers > 0 do
+
 		first = table.remove(soldiers,1)
+		self:EchoDebug('evalutate',first)
 		for i,v in pairs(tmp) do
 			if army[first].metalCost < army[v].metalCost then
+				self:EchoDebug(first, 'insert at pos', i)
 				table.insert(tmp,i,first)
 				first = nil
 				break
 			end
 		end
-		if first then table.insert(tmp,-1,first) end
+		if first then
+			table.insert(tmp,first)
+			self:EchoDebug(first, 'is more expensive then others')
+		end
 	end
 	local idx = metal * threshold
 	local idxN = math.ceil(idx)
@@ -175,7 +182,7 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	local team = game:GetTeamID()
 	local func = 0
 	local spec = self.ai.armyhst.unitTable[soldier]
-	local counter = game:GetTeamUnitDefCount(team,spec.defId)
+	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
 	local mtypeLv = self.ai.taskshst:GetMtypedLv(soldier)
 
 	if mType then
@@ -227,27 +234,29 @@ end
 TaskLabBST.queue = {
 
 		{'techs',1,6,15},
-		{'scouts',nil,5,10,2},
-		{'raiders',2,5,10,8},
-		{'battles',3,7,12,5},
-		{'breaks',2,5,20,5},
-		{'artillerys',1,10,5},
+		{'scouts',nil,nil,2,2},
+		{'battles',3,5,12,5},
+		{'raiders',2,6,20,10},
+		{'breaks',2,7,20,5},
+		{'artillerys',3,8,5,3},
 
 
 		{'rezs',1,8,10}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
-		{'antiairs',nil,7,10},
+		{'antiairs',nil,7,5},
 		{'amptechs',1,7,5}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
+		{'bomberairs',10,4,20,20},
 		{'airgun',1,5,10,5},
-		{'bomberairs',10,4,20,5},
+
 		{'fighterairs',1,5,10},
 		{'paralyzers',1,10,5}, --have paralyzer weapon
 
 		{'wartechs',1,nil,1}, --decoy etc
 		{'subkillers',1,7,5}, -- submarine weaponed
-		{'breaks',nil,nil,40},
+
+		{'breaks',nil,nil,40,10},
 		{'amphibious',0,7,20}, -- weapon amphibious
 -- 		{'transports',1,nil,nil},
 -- 		{'spys',1,nil,1}, -- spy bot
@@ -272,7 +281,7 @@ end
 
 function TaskLabBST:Update()
 	local f = self.game:Frame()
-	if f % 111 == 0 then
+	if f % 41 == 0 then
 		if not self:preFilter() then return end
 		self:GetAmpOrGroundWeapon()
 		self.isBuilding = game:GetUnitIsBuilding(self.id)--TODO better this?

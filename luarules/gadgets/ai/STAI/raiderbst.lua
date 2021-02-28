@@ -50,18 +50,46 @@ function RaiderBST:Init()
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
 	self.lastPathCheckFrame = 0
+	if not self.ai.raidhst[self.name] then
+		self.ai.raidhst[self.name] = {}
+	end
+	table.insert(self.ai.raidhst[self.name],self.id,self)
 end
+
+function RaiderBST:moveAllName(pos)
+	local f = self.game:Frame()
+	if f == self.mFrame then return end
+-- 	for i,id in pairs(self.game:GetTeamUnitsByDefs(self.ai.id,self.ai.armyhst.unitTable[self.name].defId)) do
+-- 		local u = self.game:GetUnitByID(id)
+--
+-- 		u.unit:Internal():AttackMove(pos)
+-- 		self.mFrame = f
+-- 	end
+
+
+	for i,this in pairs(self.ai.raidhst[self.name])do
+
+		if this.unit:Internal() then
+			Spring:Echo('this',this,this.unit,pos.x,pos.y,pos.z)
+			this.unit:Internal():AttackMove(pos)
+			self.mFrame = f
+		end
+	end
+
+end
+
 
 function RaiderBST:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
+-- 	if self.DebugEnabled then
+-- 		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
+-- 	end
 	if self.target then
 		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
 	self.ai.raidhst:NeedLess(self.mtype)
 	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
+	table.remove(self.ai.raidhst[self.name],self.id)
 end
 
 function RaiderBST:OwnerIdle()
@@ -72,8 +100,8 @@ function RaiderBST:OwnerIdle()
 end
 
 function RaiderBST:Priority()
-	if self.path then
-		return 100
+	if self.path and self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[self.name].defId) > self.ai.armyhst.minRaidCounter then
+		return 200
 	else
 		return 0
 	end
@@ -88,9 +116,9 @@ end
 function RaiderBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
+-- 	if self.DebugEnabled then
+-- 		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
+-- 	end
 end
 
 function RaiderBST:Update()
@@ -102,7 +130,8 @@ function RaiderBST:Update()
 		end
 		if self.moveNextUpdate then
 -- 			self.unit:Internal():Move(self.moveNextUpdate)
-			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
+			--self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
+			self:moveAllName(self.moveNextUpdate)
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
 			self.ai.targethst:RaiderHere(self)
@@ -110,6 +139,7 @@ function RaiderBST:Update()
 			-- attack nearby targets immediately
 			local attackThisUnit = self:GetImmediateTargetUnit()
 			if self.arrived and not attackThisUnit then
+				self.ai.raidhst.raidsCells = {}
 				self:GetTarget()
 			end
 			if attackThisUnit then
@@ -117,7 +147,9 @@ function RaiderBST:Update()
 -- 				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
 				local tg = attackThisUnit:GetPosition()
 				if tg then
-					self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
+					Spring:Echo('tg',tg,tg.x,tg.y,tg.z)
+					self:moveAllName(tg)
+-- 					self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
 				else
 					Spring.Echo('warning no pos for',attackThisUnit:ID())
 				end
@@ -128,6 +160,7 @@ function RaiderBST:Update()
 				self:ArrivalCheck()
 				if not self.arrived then
 					self:UpdatePathProgress()
+
 				end
 			end
 		end
@@ -158,6 +191,10 @@ function RaiderBST:GetImmediateTargetUnit()
 				return safeCell.disarmTarget.unit
 			end
 		end
+		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
+		if vulnerable then
+			return vulnerable.unit
+		end
 		local mobTargets = safeCell.targets[self.groundAirSubmerged]
 		if mobTargets then
 			for i = 1, #self.hurtsList do
@@ -167,10 +204,7 @@ function RaiderBST:GetImmediateTargetUnit()
 				end
 			end
 		end
-		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
-		if vulnerable then
-			return vulnerable.unit
-		end
+
 	end
 end
 
@@ -206,7 +240,9 @@ end
 
 function RaiderBST:MoveNear(position, distance)
 	distance = distance or self.nearDistance
-	self.unit:Internal():Move(self.ai.tool:RandomAway( position, distance))
+-- 	self.unit:Internal():Move(self.ai.tool:RandomAway( position, distance))
+-- 	self:moveAllName()
+	self.unit:Internal():AttackMove(self.ai.tool:RandomAway( position, distance))
 end
 
 function RaiderBST:GetTarget()
@@ -219,16 +255,22 @@ function RaiderBST:GetTarget()
 	self.clearShot = nil
 	self.offPath = nil
 	self.arrived = nil
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
+-- 	if self.DebugEnabled then
+-- 		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
+-- 	end
+	local bestCell
 	local unit = self.unit:Internal()
-	local bestCell = self.ai.targethst:GetBestRaidCell(unit)
+	bestCell = self.ai.targethst.cellList[self.ai.raidhst.raidsCells[self.name]]
+
+-- 	local bestCell = self.ai.targethst:GetBestRaidCell(unit)
+
+	self:EchoDebug('bestCell',bestCell)
 	self.ai.targethst:RaiderHere(self)
 	if bestCell then
 		self:EchoDebug("got target")
 		self:RaidCell(bestCell)
 	else
+		self.ai.targethst:GetBestRaidCell(unit)
 		self.unit:ElectBehaviour()
 	end
 end
@@ -246,7 +288,9 @@ end
 function RaiderBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		self.unit:Internal():Roam()
+-- 		self.unit:Internal():Roam()
+-- 		self.unit:Internal():Manoeuvre()
+		self.unit:Internal():HoldPosition()
 		if self.mtype == "air" then
 			local floats = api.vectorFloat()
 			floats:push_back(IDLEMODE_FLY)
@@ -312,12 +356,12 @@ function RaiderBST:ReceivePath(path)
 	self.targetNode = self.path[self.pathStep]
 	self:ResumeCourse()
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+-- 		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
 		for i = 2, #self.path do
 			local pos1 = self.path[i-1].position
 			local pos2 = self.path[i].position
 			local arrow = i == #self.path
-			self.map:DrawLine(pos1, pos2, {0,1,1}, self.unit:Internal():ID(), arrow, 8)
+-- 			self.map:DrawLine(pos1, pos2, {0,1,1}, self.unit:Internal():ID(), arrow, 8)
 		end
 	end
 end
@@ -384,6 +428,7 @@ function RaiderBST:AttackTarget(distance)
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos and utpos.x then
+-- 			self:moveAllName()
 			--self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
 			self.unit:Internal():AttackMove(self.unitTarget:GetPosition())--need to check
 			return

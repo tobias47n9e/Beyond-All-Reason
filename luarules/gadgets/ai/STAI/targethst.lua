@@ -799,6 +799,9 @@ end
 
 function TargetHST:GetBestRaidCell(representative)
 	if not representative then return end
+	local rname = representative:Name()
+
+	self.DebugEnabled = true
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
 	local inCell = self:GetCellHere(rpos)
@@ -808,32 +811,75 @@ function TargetHST:GetBestRaidCell(representative)
 		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
 		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
 	end
-	local rname = representative:Name()
+
+
+
 	local maxThreat = baseUnitThreat
 	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
-	local bestDist = 99999
+	local bestDist = 1/0
 	local cells
+	local closestFactory = self.ai.buildsitehst:ClosestHighestLevelFactory(rpos)
+	local bestIndex
+
+	self.map:EraseAll(7)
+	local bestVal = 0
 	for i, cell in pairs(self.cellList) do
+
 		local value, threat, gas = self:CellValueThreat(rname, cell)
 		-- cells with other raiders in or nearby are better places to go for raiders
-		if cell.raiderHere then threat = threat - cell.raiderHere end
-		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
-		threat = threat - threatReduction
-		if value > 0 and threat <= maxThreat then
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-				local mod = value - (threat * 3)
-				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
-				if dist < bestDist then
-					best = cell
-					bestDist = dist
+		for idx,v in pairs(self.ai.knownEnemies) do
+			local ePos = self.game:GetUnitByID(idx):GetPosition()
+			local name = self.game:GetUnitByID(idx):Name()
+			if cell.pos and self:GetCellHere(cell.pos) == self:GetCellHere(ePos) then
+				if self.ai.armyhst._mex_[name] or self.ai.armyhst.techs[name] then
+					value = value +10000
+				elseif self.ai.armyhst.unitTable[name].speed > 0  then
+					value = value +0
+				elseif self.ai.armyhst.unitTable[name].isWeapon then
+					value = value - 100
 				end
 			end
 		end
+-- 		if cell.raiderHere then threat = threat - cell.raiderHere end
+-- 		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+-- 		threat = threat - threatReduction
+
+		self:EchoDebug('value,threat,maxThreat',value,threat,maxThreat)
+		if value > 0   then --and threat <= maxThreat then
+			self.map:DrawCircle(cell.pos, 100, {0,255,0,255}, value, true, 7)
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+				self:EchoDebug('unit can go-!')
+				local dist = self.ai.tool:Distance(closestFactory, cell.pos)
+				local newVal = value / dist
+-- 				if dist < bestDist then
+-- 					best = cell
+-- 					bestDist = dist
+-- 				end
+				if newVal > bestVal then
+					best = cell
+					bestIndex = i
+					self.map:DrawCircle(cell.pos, 200, {0,255,0,255}, value, true, 7)
+				end
+-- 				local mod = value - (threat * 3)
+-- 				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
+-- 				if dist < bestDist then
+-- 					best = cell
+-- 					bestDist = dist
+-- 				end
+			end
+		end
 	end
-	return best
+	self:EchoDebug('best',best)
+	if best then
+		self.map:DrawCircle(best.pos, 200, {255,0,0,255}, 'best', true, 7)
+		self.ai.raidhst.raidsCells[rname] = bestIndex
+	end
+	self.DebugEnabled = false
+
+	--return best
 end
 
 function TargetHST:RaidableCell(representative, position)
@@ -857,6 +903,7 @@ end
 
 function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	if not representative then return end
+
 	position = position or representative:GetPosition()
 	self:UpdateMap()
 	local bestValueCell
@@ -880,6 +927,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 				local dist = self.ai.tool:Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
 				if dist < lowestDist then lowestDist = dist end
+				self:EchoDebug('cell,value,threat',cell,value,threat)
 				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })
 			end
 		end
@@ -908,6 +956,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 			end
 		end
 	end
+	self:EchoDebug('bestThreat,bestAnyValue,bestValue',bestThreat,bestAnyValue,bestValue)
 	local best
 	if bestValueCell then
 		best = bestValueCell
@@ -921,6 +970,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 		best = self.lastAttackCell
 	end
 	self.lastAttackCell = best
+
 	return best
 end
 

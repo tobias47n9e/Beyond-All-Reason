@@ -19,6 +19,7 @@ function RaidHST:Init()
 	self.ai.raiderCount = {}
 	self.ai.IDsWeAreRaiding = {}
 	self.pathValidFuncs = {}
+	self.raidsCells = {}
 end
 
 function RaidHST:NeedMore(mtype, add)

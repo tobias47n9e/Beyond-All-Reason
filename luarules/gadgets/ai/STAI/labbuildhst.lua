@@ -247,13 +247,6 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
--- 	if p == nil then
--- 		self:EchoDebug("looking next to llt for " .. factoryName)
--- 		p = self.ai.buildsitehst:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
--- 		if factoryPos then
--- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
--- 		end
--- 	end
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
 		local place = false

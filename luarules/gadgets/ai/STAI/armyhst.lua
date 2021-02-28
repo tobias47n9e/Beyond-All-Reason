@@ -115,14 +115,14 @@ function ArmyHST:Init()
 	}
 
 	self.scouts = {
-
+		armfast = true,
 		armflea = true,
 		armfav = true,
 		corfav = true,
 
 	}
 	self.raiders = {
-		armfast = true,
+		armmav = true,
 		armflash = true,
 		corak = true,
 		armpw = true,
@@ -141,6 +141,7 @@ function ArmyHST:Init()
 
 	}
 	self.artillerys = {
+		armrock = true,
 		armart = true,
 		armfido = true,
 		cormort = true,
@@ -161,14 +162,12 @@ function ArmyHST:Init()
 	}
 	self.battles = {
 		armzeus = true,
-		armmav = true,
 		armham = true,
 		armstump = true,
 		correap = true,
 		armbull = true,
 		corraid = true,
 		corstorm = true,
-		armrock = true,
 		corcan = true,
 		armraz = true,
 		corsnap = true,
@@ -190,7 +189,7 @@ function ArmyHST:Init()
 		armepoch = true,
 		corthud = true,
 		corsumo = true,
-		armham = true,
+
 		armwar = true,
 		armbanth = true,
 		armanac = true,
@@ -309,12 +308,6 @@ function ArmyHST:Init()
 	}
 
 -------IMMOBILE--------
-	self._targeting_ = {
-		armtarg = true ,
-		armfatf = true ,
-		cortarg = true ,
-		corfatf = true ,
-	}
 
 	self._geo_ = {
 		corageo = true ,
@@ -335,14 +328,10 @@ function ArmyHST:Init()
 	}
 
 	self._solar_ = {
-		corsolar = true ,
-		armsolar = true ,
+		corsolar = 'coradvsol' ,
+		armsolar = 'armadvsol' ,
 	}
 
-	self._advsol_ = {
-		coradvsol = true ,
-		armadvsol = true ,
-	}
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
@@ -400,13 +389,14 @@ function ArmyHST:Init()
 
 
 	self._fus_ = {
-		armfus = true ,
+		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
 		armuwfus = true ,
-		armckfus = true ,
-		corfus = true ,
+		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
 		coruwfus = true ,
-		armafus = true ,
-		corafus = true ,
+-- 		armckfus = true , --clackable, better to think about it later
+
+-- 		armafus = true ,
+-- 		corafus = true ,
 		--armdf = true, --fake fus
 	}
 
@@ -551,6 +541,13 @@ function ArmyHST:Init()
 	self._aa2_ = {
 		corscreamer = true ,
 		armmercury = true ,
+	}
+
+	self._targeting_ = {
+		armtarg = true ,
+		armfatf = true ,
+		cortarg = true ,
+		corfatf = true ,
 	}
 
 	self._intrusion_ = {
@@ -821,57 +818,6 @@ ArmyHST.nukeList = {
 	cortron = 2250,
 }
 
-
-
--- ArmyHST.Eco1={
--- 	armsolar=1,
--- 	armwin=1,
--- 	armadvsol=1,
--- 	armtide=1,
---
--- 	corsolar=1,
--- 	corwin=1,
--- 	coradvsol=1,
--- 	cortide=1,
---
--- 	corgeo=1,
--- 	armgeo=1,
---
--- 	--store
---
--- 	armestor=1,
--- 	armmstor=1,
--- 	armuwes=1,
--- 	armuwms=1,
---
--- 	corestor=1,
--- 	cormstor=1,
--- 	coruwes=1,
--- 	coruwms=1,
---
--- 	--conv
--- 	armmakr=1,
--- 	cormakr=1,
--- 	armfmkr=1,
--- 	corfmkr=1,
---
---
--- 	--metalli
--- 	corexp=1,
--- 	armamex=1,
---
--- 	cormex=1,
--- 	armmex=1,
---
--- 	armuwmex=1,
--- 	coruwmex=1,
---
--- 	armnanotc=1,
--- 	cornanotc=1,
--- 	armnanotcplat = 1,
--- 	cornanotcplat = 1,
--- }
-
 ArmyHST.cleanable = {
 	armsolar= 'ground',
 	corsolar= 'ground',
@@ -899,11 +845,10 @@ ArmyHST.maxBomberCounter = 16
 ArmyHST.baseBomberCounter = 8
 ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
--- raid counter works backwards: it determines the number of raiders to build
--- if it reaches ArmyHST.minRaidCounter, none are built
-ArmyHST.minRaidCounter =2
-ArmyHST.maxRaidCounter = 8
-ArmyHST.baseRaidCounter = 5
+
+ArmyHST.minRaidCounter =10
+ArmyHST.maxRaidCounter = 20
+ArmyHST.baseRaidCounter = 10
 
 -- Taskqueuebehaviour was modified to skip this name
 ArmyHST.DummyUnitName = "skipthisorder"
@@ -1189,6 +1134,7 @@ function ArmyHST:GetUnitTable()
 			utable.isTransport = unitDef.isTransport
 			utable.isImmobile = unitDef.isImmobile
 			utable.isBuilding = unitDef.isBuilding
+
 			utable.isBuilder = unitDef.isBuilder
 			utable.isMobileBuilder = unitDef.isMobileBuilder
 			utable.isStaticBuilder = unitDef.isStaticBuilder

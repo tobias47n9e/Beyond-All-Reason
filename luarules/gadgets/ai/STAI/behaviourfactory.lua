@@ -101,6 +101,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 -- 		table.insert(b, AttackerBST)
 		table.insert(b, RaiderBST)
 -- 		table.insert(b, ScoutBST)
+		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then
@@ -218,8 +219,6 @@ end
    elseif army._wind_[un] then
    --self:EchoDebug()
    elseif army._tide_[un] then
-   --self:EchoDebug()
-   elseif army._advsol_[un] then
    --self:EchoDebug()
    elseif army._solar_[un] then
    --self:EchoDebug()

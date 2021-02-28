@@ -1182,6 +1182,7 @@ function MapHST:MobilityOfUnit(unit)
 end
 
 function MapHST:UnitCanGoHere(unit, position)
+	self:EchoDebug('cgh',unit,position)
 	if unit == nil then return false end
 	if position == nil then return false end
 	local mtype, unet = self:MobilityOfUnit(unit)

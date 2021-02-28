@@ -86,7 +86,7 @@ function CleanerBST:reset()
 end
 
 function CleanerBST:ecoCondition()
-	if self.ai.Metal.full < 0.5  or self.ai.Energy.income > 5000 then
+	if self.ai.Metal.full < 0.5 and self.ai.Energy.full > 0.5    then
 		local team = game:GetTeamID()
 		local counter = 0
 		for name,v in pairs(self.ai.armyhst._fus_) do

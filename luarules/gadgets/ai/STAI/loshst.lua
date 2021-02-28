@@ -70,6 +70,7 @@ LosHST.DebugEnabled = false
 
 function LosHST:Init()
 	self.losGrid = {}
+	self.ai.enemyBuildings = {}
 	self.ai.knownEnemies = {}
 	self.ai.knownWrecks = {}
 	self.ai.wreckCount = 0
@@ -104,6 +105,18 @@ function LosHST:Update()
 		self:UpdateWrecks()
 		self.ai.lastLOSUpdate = f
 	end
+end
+function LosHST:VisualDBG(id)
+	local u = self.game:GetUnitByID(id)
+	local colours = {
+		default = {255,0,0,255},
+		eco = {0,255,0,255},
+		support = {0,0,255,255},
+		expand = {255,255,255,255},
+	}
+	u:EraseHighlight(nil, id, 9 )
+	u:DrawHighlight({255,255,255,255} , id, 9 )
+
 end
 
 function LosHST:UpdateEnemies(enemyList)
@@ -161,6 +174,12 @@ function LosHST:UpdateEnemies(enemyList)
 				known[id] = los
 				self.ai.knownEnemies[id] = e
 				e.los = los
+			end
+			if self.ai.armyhst.unitTable[ename].isBuilding then
+				if self.ai.knownEnemies[id] ~= nil then
+					self.ai.enemyBuildings[id] = pos
+					self:VisualDBG(id)
+				end
 			end
 			if persist == true then
 				if self.ai.knownEnemies[id] ~= nil then

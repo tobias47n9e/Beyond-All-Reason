@@ -157,17 +157,18 @@ end
 
 function BootBST:ExitFactory(side)
 		self:EchoDebug(self.name .. " exiting " .. side)
+		local side = self.ai.buildsitehst:GetFacing(self.unit:Internal():GetPosition())
 		local outX, outZ
-		if side == "south" then
+		if side == 0 then
 			outX = 0
 			outZ = 200
-		elseif side == "north" then
+		elseif side == 2 then
 			outX = 0
 			outZ = -200
-		elseif side == "east" then
+		elseif side == 3 then
 			outX = 200
 			outZ = 0
-		elseif side == "west" then
+		elseif side == 1 then
 			outX = -200
 			outZ = 0
 		end
