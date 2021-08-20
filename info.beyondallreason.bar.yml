@@ -1,0 +1,58 @@
+# Run using:
+# flatpak-builder build-dir info.beyondallreason.bar.yml  --force-clean
+app-id: info.beyondallreason.bar
+runtime: org.freedesktop.Platform
+runtime-version: '20.08'
+sdk: org.freedesktop.Sdk
+  # Replace shell script call with game launcher
+command: hello.sh
+finish-args:
+  - --socket=x11
+sdk-extensions:
+  # flatpak install org.freedesktop.Sdk.Extension.openjdk11
+  - org.freedesktop.Sdk.Extension.openjdk11
+build-options:
+  env:
+    PATH: /app/bin:/usr/bin:/usr/lib/sdk/openjdk11/bin
+    JAVA_HOME: /usr/lib/sdk/openjdk11/jvm/openjdk-11/
+    CMAKE_JAVA_INCLUDE_PATH: /usr/lib/sdk/openjdk11/
+    JAVA_AWT_LIBRARY: /usr/lib/sdk/openjdk11/jvm/openjdk-11/lib/libawt.so
+    JAVA_JVM_LIBRARY: /app/jre/lib/server/libjvm.so
+    JAVA_INCLUDE_PATH: /usr/lib/sdk/openjdk11/jvm/openjdk-11/include
+    JAVA_INCLUDE_PATH2: /usr/lib/sdk/openjdk11/jvm/openjdk-11/include/linux
+    JAVA_AWT_INCLUDE_PATH: /app/jre/lib
+finish-args:
+  - --env=PATH=/usr/bin:/app/bin:/app/jre/bin
+  - --env=JAVA_HOME=/app/jre
+  - --env=JAVA=/app/jre/bin/java
+modules:
+  # You need this installed on the system that is building the Flatpak
+  # flatpak install org.freedesktop.Sdk.Extension.openjdk11
+  # and same version as runtime-version above.
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk11/install.sh
+  - name: libdevil-dev
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: http://deb.debian.org/debian/pool/main/d/devil/devil_1.7.8.orig.tar.gz
+        sha256: 682ffa3fc894686156337b8ce473c954bf3f4fb0f3ecac159c73db632d28a8fd
+      - type: patch
+        path: patches/DevIL-1.7.8-gcc5.patch
+  - name: spring
+    buildsystem: cmake
+    sources:
+      - type: git
+        url: https://github.com/beyond-all-reason/spring
+        commit: 065f93a05f9863eeef8fecb0f5adb75792f2c2e1
+  # TODO: Replace shell script with game launcher
+  - name: hello
+    buildsystem: simple
+    build-commands:
+      - install -D hello.sh /app/bin/hello.sh
+    sources:
+      - type: file
+        path: hello.sh
+        

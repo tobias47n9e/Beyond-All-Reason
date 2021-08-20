@@ -39,3 +39,17 @@ git clone https://github.com/beyond-all-reason/Beyond-All-Reason.git BAR.sdd
 6. If developing Chobby also clone the code into the `games` directory. Follow the guide in the [Chobby README](https://github.com/beyond-all-reason/BYAR-Chobby#developing-the-lobby).
 
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
+## Flatpak
+
+Building the Flatpak requires the following Flatpak extensions:
+
+```
+flatpak install org.freedesktop.Sdk.Extension.openjdk11
+```
+
+Then run this command in the terminal:
+
+```
+flatpak-builder build-dir info.beyondallreason.bar.yml --force-clean
+```
